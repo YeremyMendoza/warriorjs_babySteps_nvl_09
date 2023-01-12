@@ -1,0 +1,49 @@
+class Player {
+  /**
+   * Plays a warrior turn.
+   *
+   * @param {Warrior} warrior The warrior.
+   */
+  constructor(){
+    this.health = 20;
+    this.enemys = [];
+  }
+  playTurn(warrior) {
+    if(this.health >= warrior.health() && this.lifeState(warrior)){
+      this.canMove(warrior, 'forward');
+    }else if(this.underAttack(warrior)) this.canMove(warrior, 'backward');
+    else warrior.rest();
+    this.health = warrior.health();
+  }
+
+  canMove(warrior, direction){
+    this.searchEnemysForward(warrior);
+    if(warrior.feel(direction).isEmpty()) 
+      this.areaRecognition(warrior, direction);
+    else if(warrior.feel().isWall()) warrior.pivot();
+    else if(warrior.feel().getUnit().isBound()) warrior.rescue();
+    else warrior.attack();
+  }
+  
+  areaRecognition(warrior, direction){
+    if(this.underAttack(warrior)) warrior.shoot('backward');
+    else if(this.enemys[1] == 2) warrior.shoot();
+    else if(this.enemys[1] == 0 && this.enemys[2] == 2) warrior.shoot();
+    else warrior.walk(direction);
+  }
+
+  searchEnemysForward(warrior){
+    this.enemys = warrior.look().map(item => {
+      if(item.getUnit())
+        if(item.getUnit().isBound()) return 1;
+        else return 2;
+      else return 0;
+    });
+  }
+  underAttack(warrior){
+    return this.health > warrior.health();
+  }
+  lifeState(warrior){
+    return warrior.health() > (0.5 * warrior.maxHealth());
+  }
+}
